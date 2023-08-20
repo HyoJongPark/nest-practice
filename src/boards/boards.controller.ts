@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { BoardsService } from './boards.service';
 import { Board } from './board.model';
 import { CreateBoardDto } from './create-board.dto';
@@ -20,5 +20,10 @@ export class BoardsController {
   @Post()
   public createBoard(@Body() createBoardDto: CreateBoardDto): Board {
     return this.boardsService.createBoard(createBoardDto);
+  }
+
+  @Delete('/:id')
+  public deleteBoardById(@Param('id') id: string): void {
+    this.boardsService.deleteBoardById(id);
   }
 }
