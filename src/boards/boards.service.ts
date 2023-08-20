@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Board, BoardStatus } from './board.model';
 import { v1 as uuid } from 'uuid';
 import { CreateBoardDto } from './create-board.dto';
@@ -24,17 +24,28 @@ export class BoardsService {
   }
 
   public getBoardById(id: string): Board {
-    return this.boards.find((board) => board.id === id);
+    const foundBoard = this.boards.find((board) => board.id === id);
+
+    if (!foundBoard) {
+      throw new NotFoundException('게시글이 존재하지 않습니다.');
+    }
+
+    return foundBoard;
   }
 
   updateBoardStatusById(id: string, status: BoardStatus): Board {
-    const board: Board = this.boards.find((board) => board.id === id);
-    board.status = status;
+    const foundBoard = this.getBoardById(id);
 
-    return board;
+    foundBoard.status = status;
+
+    return foundBoard;
   }
 
-  deleteBoardById(id: string): void {
+  deleteBoardById(id: string): Board {
+    const foundBoard = this.getBoardById(id);
+
     this.boards = this.boards.filter((board) => board.id !== id);
+
+    return foundBoard;
   }
 }
