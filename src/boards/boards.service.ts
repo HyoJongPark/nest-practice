@@ -1,51 +1,55 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Board, BoardStatus } from './entity/board.model';
-import { v1 as uuid } from 'uuid';
+import { BoardStatus } from './entity/board-status.enum';
 import { CreateBoardDto } from './dto/create-board.dto';
+import { Board } from './entity/board.entity';
+import { BoardRepository } from './board.repository';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class BoardsService {
-  private boards: Board[] = []; //TODO: DB로 교체
+  constructor(
+    @InjectRepository(BoardRepository)
+    private boardRepository: BoardRepository,
+  ) {}
 
-  public getAllBoard(): Board[] {
-    return this.boards;
+  public async getAllBoard(): Promise<Board[]> {
+    return this.boardRepository.find();
   }
 
-  public createBoard(createBoardDto: CreateBoardDto) {
-    const board: Board = {
-      id: uuid(),
-      title: createBoardDto.title,
-      description: createBoardDto.description,
-      status: BoardStatus.PUBLIC,
-    };
+  public async createBoard(createBoardDto: CreateBoardDto) {
+    const board: Board = this.boardRepository.createBoard(createBoardDto);
 
-    this.boards.push(board);
+    await this.boardRepository.save(board);
     return board;
   }
 
-  public getBoardById(id: string): Board {
-    const foundBoard = this.boards.find((board) => board.id === id);
+  public async getBoardById(id: number): Promise<Board> {
+    const foundBoard = await this.boardRepository.findById(id);
 
     if (!foundBoard) {
-      throw new NotFoundException('게시글이 존재하지 않습니다.');
+      throw new NotFoundException('존재하지 않는 게시글입니다.');
     }
 
     return foundBoard;
   }
 
-  updateBoardStatusById(id: string, status: BoardStatus): Board {
-    const foundBoard = this.getBoardById(id);
+  public async updateBoardStatusById(
+    id: number,
+    status: BoardStatus,
+  ): Promise<Board> {
+    const foundBoard = await this.getBoardById(id);
 
     foundBoard.status = status;
+    await this.boardRepository.save(foundBoard);
 
     return foundBoard;
   }
 
-  deleteBoardById(id: string): Board {
-    const foundBoard = this.getBoardById(id);
+  public async deleteBoardById(id: number): Promise<void> {
+    const result = await this.boardRepository.delete(id);
 
-    this.boards = this.boards.filter((board) => board.id !== id);
-
-    return foundBoard;
+    if (result.affected === 0) {
+      throw new NotFoundException('존재하지 않는 게시글입니다.');
+    }
   }
 }
