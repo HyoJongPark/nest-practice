@@ -16,16 +16,17 @@ export class AuthService {
   ) {}
 
   public async signUp(authCredentialsDto: AuthCredentialsDto): Promise<User> {
-    const user: User = this.userRepository.createUser(authCredentialsDto);
+    const createdUser: Promise<User> =
+      this.userRepository.createUser(authCredentialsDto);
 
-    try {
-      return await this.userRepository.save(user);
-    } catch (error) {
-      if (error.code === '23505') {
-        throw new ConflictException('이미 존재하는 username입니다.');
-      } else {
-        throw new InternalServerErrorException();
-      }
-    }
+    return createdUser
+      .then((user) => this.userRepository.save(user))
+      .catch((error) => {
+        if (error.code === '23505') {
+          throw new ConflictException('이미 존재하는 username입니다.');
+        } else {
+          throw new InternalServerErrorException();
+        }
+      });
   }
 }
