@@ -4,7 +4,6 @@ import { Injectable } from '@nestjs/common';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { BoardStatus } from './entity/board-status.enum';
 
-//TODO: isDeprecated use another method
 @Injectable()
 export class BoardRepository extends Repository<Board> {
   constructor(private dataSource: DataSource) {
