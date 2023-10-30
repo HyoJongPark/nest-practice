@@ -20,4 +20,10 @@ export class UserRepository extends Repository<User> {
 
     return this.create({ username, password: hashedPassword });
   }
+
+  public async findByUsername(username: string): Promise<User> {
+    return await this.createQueryBuilder('user')
+      .where('user.username = :username', { username })
+      .getOne();
+  }
 }
